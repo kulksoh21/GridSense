@@ -17,7 +17,9 @@ zip_codes = [
     "94582","92037"
 ]
 
-climate_zones = ["coastal", "inland", "desert", "mountain"]
+# Map ZIP to climate (simplified)
+zip_climate_map = {zip_code: random.choice(["coastal","inland","desert","mountain"]) for zip_code in zip_codes}
+
 ac_levels = ["low", "medium", "high"]
 time_usage_types = ["morning_peak", "evening_peak", "off_peak", "mixed"]
 house_types = ["detached", "condo", "apartment"]
@@ -45,14 +47,8 @@ def simulate_residents():
 def simulate_ac_level():
     return random.choice(ac_levels)
 
-def simulate_climate():
-    return random.choice(climate_zones)
-
 def simulate_time_usage():
     return random.choice(time_usage_types)
-
-def assign_utility(zip_code):
-    return random.choice(["PG&E","SCE","SDG&E"])
 
 def simulate_house_type():
     return random.choice(house_types)
@@ -105,9 +101,12 @@ for _ in range(num_households):
     home_size = simulate_home_size()
     house_type = simulate_house_type()
     ac_level = simulate_ac_level()
-    climate = simulate_climate()
     time_type = simulate_time_usage()
-    utility = assign_utility(zip_code)
+    utility = random.choice(list(utility_rates.keys()))  # simulate diversity
+    
+    # Determine climate from ZIP
+    climate = zip_climate_map[zip_code]
+    
     appliance_usage = simulate_appliance_usage()
     
     # Appliance kWh
@@ -125,10 +124,10 @@ for _ in range(num_households):
     # Bill
     bill = calculate_bill(peak, offpeak, utility)
     
-    # Carbon
-    carbon_kg = round(total_kwh * 0.4, 2)  # rough estimate
+    # Carbon footprint (kg CO2)
+    carbon_kg = round(total_kwh * 0.4, 2)
     
-    # Placeholder user goals & recommendations
+    # User target & recommendation
     target_bill = round(bill * random.uniform(0.7, 0.95), 2)
     predicted_bill = bill  # initial predicted = bill
     recommendation = "Reduce HVAC usage, unplug unused appliances, shift usage to off-peak"
@@ -152,6 +151,7 @@ for _ in range(num_households):
         "predicted_bill_usd": predicted_bill,
         "monthly_energy_saving_recommendation": recommendation
     }
+    
     # Add appliance kWh & usage
     for app in appliances:
         row[app] = appliance_usage[app]
