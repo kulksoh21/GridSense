@@ -6,7 +6,7 @@ import os
 # Add parent directory to path to import from src
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'GridSense'))
 
-from src.predict_bill import predict_energy_bill
+from src.Energy_engine import predict_energy_bill
 
 app = Flask(__name__)
 CORS(app)

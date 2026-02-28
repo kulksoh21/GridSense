@@ -1,11 +1,8 @@
-# data_simulator_full_extra.py
 import pandas as pd
 import numpy as np
 import random
 
-# -----------------------------
-# 1️⃣ Simulation parameters
-num_households = 1000  # Enough for ML
+num_households = 1000  
 
 zip_codes = [
     "90001","90002","90003","90210","94016","94022","94105","94536",
@@ -17,7 +14,6 @@ zip_codes = [
     "94582","92037"
 ]
 
-# Map ZIP to climate (simplified)
 zip_climate_map = {zip_code: random.choice(["coastal","inland","desert","mountain"]) for zip_code in zip_codes}
 
 ac_levels = ["low", "medium", "high"]
@@ -26,15 +22,13 @@ house_types = ["detached", "condo", "apartment"]
 
 appliances = ["fridge", "washer", "dryer", "dishwasher", "ev_charger", "pool_pump"]
 
-# Utility rates (simplified, realistic values)
 utility_rates = {
     "PG&E": {"peak": 0.35, "offpeak": 0.15, "fixed": 15},
     "SCE": {"peak": 0.32, "offpeak": 0.14, "fixed": 12},
     "SDG&E": {"peak": 0.38, "offpeak": 0.16, "fixed": 18}
 }
 
-# -----------------------------
-# 2️⃣ Helper functions
+
 def simulate_appliance_usage():
     return {app: random.choice([0, 1]) for app in appliances}
 
@@ -65,15 +59,13 @@ def appliance_kwh(appliance_dict):
         "pool_pump_kwh": appliance_dict["pool_pump"] * random.randint(50,150)
     }
 
-# -----------------------------
-# 4️⃣ HVAC kWh estimation
+
 def hvac_kwh(ac_level, climate, residents):
     base = {"low": 200, "medium": 400, "high": 600}
     climate_factor = {"coastal": 1, "inland": 1.2, "desert": 1.5, "mountain": 0.8}
     return base[ac_level] * climate_factor[climate] * (0.8 + 0.05*residents)
 
-# -----------------------------
-# 5️⃣ Peak/off-peak split
+
 def peak_offpeak_split(total_kwh, time_type):
     if time_type in ["morning_peak", "evening_peak"]:
         peak_fraction = 0.7
@@ -85,14 +77,11 @@ def peak_offpeak_split(total_kwh, time_type):
     offpeak_kwh = total_kwh * (1-peak_fraction)
     return round(peak_kwh,2), round(offpeak_kwh,2)
 
-# -----------------------------
-# 6️⃣ Bill calculation
+
 def calculate_bill(peak_kwh, offpeak_kwh, utility):
     rates = utility_rates[utility]
     return round(peak_kwh*rates["peak"] + offpeak_kwh*rates["offpeak"] + rates["fixed"], 2)
 
-# -----------------------------
-# 7️⃣ Simulate dataset
 data = []
 
 for _ in range(num_households):
@@ -102,34 +91,26 @@ for _ in range(num_households):
     house_type = simulate_house_type()
     ac_level = simulate_ac_level()
     time_type = simulate_time_usage()
-    utility = random.choice(list(utility_rates.keys()))  # simulate diversity
+    utility = random.choice(list(utility_rates.keys()))  
     
-    # Determine climate from ZIP
     climate = zip_climate_map[zip_code]
     
     appliance_usage = simulate_appliance_usage()
     
-    # Appliance kWh
     appliance_kwhs = appliance_kwh(appliance_usage)
-    
-    # HVAC kWh
+
     hvac = hvac_kwh(ac_level, climate, residents)
     
-    # Total kWh
     total_kwh = sum(appliance_kwhs.values()) + hvac
-    
-    # Peak/off-peak
+
     peak, offpeak = peak_offpeak_split(total_kwh, time_type)
-    
-    # Bill
+
     bill = calculate_bill(peak, offpeak, utility)
-    
-    # Carbon footprint (kg CO2)
+
     carbon_kg = round(total_kwh * 0.4, 2)
-    
-    # User target & recommendation
+
     target_bill = round(bill * random.uniform(0.7, 0.95), 2)
-    predicted_bill = bill  # initial predicted = bill
+    predicted_bill = bill  
     recommendation = "Reduce HVAC usage, unplug unused appliances, shift usage to off-peak"
     
     row = {
@@ -152,15 +133,12 @@ for _ in range(num_households):
         "monthly_energy_saving_recommendation": recommendation
     }
     
-    # Add appliance kWh & usage
     for app in appliances:
         row[app] = appliance_usage[app]
         row[f"{app}_kwh"] = appliance_kwhs[f"{app}_kwh"]
     
     data.append(row)
 
-# -----------------------------
-# 8️⃣ Save CSV
 df = pd.DataFrame(data)
 df.to_csv("simulated_energy_data.csv", index=False)
 print("✅ Simulated dataset saved as simulated_energy_data.csv")
