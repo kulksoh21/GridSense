@@ -7,21 +7,25 @@
 
 ## Project Overview
 
-**GridSense** is an intelligent energy optimization platform designed to help households reduce electricity costs while minimizing their carbon footprint. By combining realistic household energy data with personalized recommendations, GridSense empowers users to make informed decisions about energy usage, cost-saving strategies, and sustainable living practices.
+**GridSense** is an intelligent energy optimization platform designed to help California households reduce electricity costs while minimizing their carbon footprint. By combining realistic household energy data, machine learning-powered bill predictions, and gamified insights, GridSense empowers users to make informed decisions about energy usage, cost-saving strategies, and sustainable living practices.
+
+The platform supports a wide range of home types, resident counts, and appliance profiles, and provides actionable guidance, carbon footprint equivalents, and gamified rewards such as eco scores, badges, and leaderboard standings.
 
 ---
 
 ## Key Features
 
 ### Minimum Viable Product (MVP)
-- **User Inputs:** Home size, number of residents, ZIP code, appliance usage (HVAC, water heater, washer, dryer, stove, dishwasher, pool pump, EV ownership).  
-- **Dashboard Outputs:** Estimated monthly energy consumption (kWh), utility bill ($), and carbon footprint (kg CO₂).  
-- **Actionable Insights:** Top 3 energy-saving recommendations tailored to the household.
 
-### Stretch / “Super Extra” Features
-- **Goal Setting:** Users can specify a target monthly utility bill; GridSense generates a customized plan to achieve it.  
-- **Time-of-Use Optimization:** Recommendations for shifting high-energy activities (laundry, EV charging) to off-peak periods.  
-- **Carbon Reduction Guidance:** Personalized suggestions for reducing environmental impact beyond cost savings.
+User Inputs: Home size, number of residents, ZIP code, appliance usage (HVAC, washer, dryer, dishwasher, EV charger, pool pump).
+Dashboard Outputs: Estimated monthly energy consumption (kWh), predicted utility bill (USD), and carbon footprint (kg CO₂).=
+Actionable Insights: Personalized top recommendations for energy savings.
+Eco Score & Grade: Gamified score (0–100) and letter grade (A–F) reflecting household efficiency.
+Badges: Earn badges based on efficiency, appliance usage, and off-peak optimization.
+Leaderboard Simulation: Compare your eco score against other households.
+Comparison vs Similar Users: See how your energy usage compares to households with similar size and residents in California.
+Carbon Footprint Equivalents: Visualize energy impact in terms of car miles, trees needed, or flights.
+Smart Recommendations: Time-of-use optimization, HVAC adjustment tips, and appliance management.
 
 ---
 
@@ -45,13 +49,27 @@ The platform relies on a **simulated dataset** of 1000 households in California,
 | `time_usage_type` | Predominant energy use period (mostly_peak, mostly_offpeak, mixed) |
 
 > **Note:** Rates are based on verified California utility data (PG&E, SCE, SDG&E) to ensure realistic financial calculations.
+---
+### Modeling Approach
+
+Feature Engineering: Derived features include total_kwh, hvac_intensity, residents_per_sqft, has_ev_or_pool, and appliance counts.
+Machine Learning Model: Trained a regression model (best_energy_model.pkl) using the simulated dataset to predict monthly utility bills based on household characteristics.
+Simulation: Carbon footprint, eco score, badges, leaderboard ranking, and comparison with similar households are derived from calculated energy metrics.
+
+### System Architecture
+
+Frontend: Web-based UI, inputs user household data, and displays dashboards with predictions, eco metrics, recommendations, and gamification.
+Backend: Python backend with ML model serving, energy calculations, carbon metrics, recommendation engine, and gamification logic.
+Integration: Backend exposes functions that the frontend calls to fetch predictions, eco scores, badges, leaderboard rank, and similar household comparisons.
 
 ---
 
+### Impact and Vision
+
+GridSense empowers households to make informed decisions about energy usage by translating raw consumption patterns into meaningful financial and environmental insights. By combining predictive modeling, carbon analytics, and behavioral design, the platform encourages sustainable action through clarity and personalization. While initially built using simulated data, the system is structured for future integration with real-world smart meter data, live pricing APIs, and community benchmarking features.
+
+Built for Hack for Humanity 2026, GridSense demonstrates how machine learning and thoughtful system design can support both cost savings and climate-conscious living at the household level.
+
+---
 ## Installation & Usage
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/kulksoh21/GridSense.git
-cd gridsense
