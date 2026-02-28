@@ -17,15 +17,15 @@ The platform supports a wide range of home types, resident counts, and appliance
 
 ### Minimum Viable Product (MVP)
 
-User Inputs: Home size, number of residents, ZIP code, appliance usage (HVAC, washer, dryer, dishwasher, EV charger, pool pump).
-Dashboard Outputs: Estimated monthly energy consumption (kWh), predicted utility bill (USD), and carbon footprint (kg CO₂).=
-Actionable Insights: Personalized top recommendations for energy savings.
-Eco Score & Grade: Gamified score (0–100) and letter grade (A–F) reflecting household efficiency.
-Badges: Earn badges based on efficiency, appliance usage, and off-peak optimization.
-Leaderboard Simulation: Compare your eco score against other households.
-Comparison vs Similar Users: See how your energy usage compares to households with similar size and residents in California.
-Carbon Footprint Equivalents: Visualize energy impact in terms of car miles, trees needed, or flights.
-Smart Recommendations: Time-of-use optimization, HVAC adjustment tips, and appliance management.
+- User Inputs: Home size, number of residents, ZIP code, appliance usage (HVAC, washer, dryer, dishwasher, EV charger, pool pump).
+- Dashboard Outputs: Estimated monthly energy consumption (kWh), predicted utility bill (USD), and carbon footprint (kg CO₂).=
+- Actionable Insights: Personalized top recommendations for energy savings.
+- Eco Score & Grade: Gamified score (0–100) and letter grade (A–F) reflecting household efficiency.
+- Badges: Earn badges based on efficiency, appliance usage, and off-peak optimization.
+- Leaderboard Simulation: Compare your eco score against other households.
+- Comparison vs Similar Users: See how your energy usage compares to households with similar size and residents in California.
+- Carbon Footprint Equivalents: Visualize energy impact in terms of car miles, trees needed, or flights.
+- Smart Recommendations: Time-of-use optimization, HVAC adjustment tips, and appliance management.
 
 ---
 
@@ -52,15 +52,15 @@ The platform relies on a **simulated dataset** of 1000 households in California,
 ---
 ### Modeling Approach
 
-Feature Engineering: Derived features include total_kwh, hvac_intensity, residents_per_sqft, has_ev_or_pool, and appliance counts.
-Machine Learning Model: Trained a regression model (best_energy_model.pkl) using the simulated dataset to predict monthly utility bills based on household characteristics.
-Simulation: Carbon footprint, eco score, badges, leaderboard ranking, and comparison with similar households are derived from calculated energy metrics.
+- Feature Engineering: Derived features include total_kwh, hvac_intensity, residents_per_sqft, has_ev_or_pool, and appliance counts.
+- Machine Learning Model: Trained a regression model (best_energy_model.pkl) using the simulated dataset to predict monthly utility bills based on household characteristics.
+- Simulation: Carbon footprint, eco score, badges, leaderboard ranking, and comparison with similar households are derived from calculated energy metrics.
 
 ### System Architecture
 
-Frontend: Web-based UI, inputs user household data, and displays dashboards with predictions, eco metrics, recommendations, and gamification.
-Backend: Python backend with ML model serving, energy calculations, carbon metrics, recommendation engine, and gamification logic.
-Integration: Backend exposes functions that the frontend calls to fetch predictions, eco scores, badges, leaderboard rank, and similar household comparisons.
+- Frontend: Web-based UI, inputs user household data, and displays dashboards with predictions, eco metrics, recommendations, and gamification.
+- Backend: Python backend with ML model serving, energy calculations, carbon metrics, recommendation engine, and gamification logic.
+- Integration: Backend exposes functions that the frontend calls to fetch predictions, eco scores, badges, leaderboard rank, and similar household comparisons.
 
 ---
 
