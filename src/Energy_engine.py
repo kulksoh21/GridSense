@@ -1,5 +1,7 @@
-import pandas as pd
+import random
+
 import joblib
+import pandas as pd
 
 model = joblib.load("best_energy_model.pkl")
 
@@ -61,6 +63,69 @@ def calculate_bill(peak_kwh, offpeak_kwh, utility):
         2,
     )
 
+def compare_to_similar_users(total_kwh, home_size, residents):
+    """
+    Simulates comparison to similar households
+    """
+    similar_avg = (home_size * 0.5) + (residents * 100)
+
+    difference = total_kwh - similar_avg
+    percent_diff = round((difference / similar_avg) * 100, 1)
+
+    if difference > 0:
+        comparison = f"You use {percent_diff}% more energy than similar households."
+    else:
+        comparison = f"You use {abs(percent_diff)}% less energy than similar households."
+
+    return round(similar_avg, 2), comparison
+
+def simulate_leaderboard(user_eco_score):
+    simulated_scores = [random.randint(50, 98) for _ in range(9)]
+    simulated_scores.append(user_eco_score)
+
+    sorted_scores = sorted(simulated_scores, reverse=True)
+    rank = sorted_scores.index(user_eco_score) + 1
+
+    leaderboard = [
+        {"rank": i + 1, "eco_score": score}
+        for i, score in enumerate(sorted_scores)
+    ]
+
+    return rank, leaderboard
+
+def calculate_eco_score(total_kwh):
+    score = max(0, 100 - int((total_kwh / 1000) * 10))
+
+    if score >= 90:
+        grade = "A"
+    elif score >= 80:
+        grade = "B"
+    elif score >= 70:
+        grade = "C"
+    elif score >= 60:
+        grade = "D"
+    else:
+        grade = "F"
+
+    return score, grade
+
+def generate_badges(total_kwh, carbon_kg, recommendations):
+    badges = []
+
+    if total_kwh < 500:
+        badges.append("🌿 Low Energy Champion")
+
+    if carbon_kg < 200:
+        badges.append("🌎 Carbon Conscious")
+
+    if any(r["priority"] == "HIGH" for r in recommendations):
+        badges.append("⚡ Efficiency Improver")
+
+    if len(recommendations) >= 3:
+        badges.append("🏆 Optimization Explorer")
+
+    return badges
+
 
 def carbon_equivalents(carbon_kg_month):
     car_miles = carbon_kg_month * 48
@@ -114,6 +179,7 @@ def generate_recommendations(features, peak_kwh, offpeak_kwh):
 def predict_energy_bill(user_input):
 
     defaults = {
+        "utility": "PG&E",
         "ac_level": "medium",
         "climate": "coastal",
         "time_usage_type": "mixed",
@@ -173,7 +239,9 @@ def predict_energy_bill(user_input):
             int(appliances_dict["ev_charger"] or appliances_dict["pool_pump"]),
     }])
 
-    predicted_bill = round(model.predict(df)[0], 2)
+    model_predicted_bill = round(model.predict(df)[0], 2)
+    utility = user_input.get("utility", "PG&E")
+    predicted_bill = calculate_bill(peak_kwh, offpeak_kwh, utility)
 
     car_miles, trees, flights = carbon_equivalents(carbon_kg)
 
@@ -183,18 +251,35 @@ def predict_energy_bill(user_input):
         offpeak_kwh=offpeak_kwh,
     )
 
-    eco_score = max(0, 100 - int((total_kwh / 1000) * 10))
+    eco_score, eco_grade = calculate_eco_score(total_kwh)
+    similar_avg_kwh, similar_users_comparison = compare_to_similar_users(
+        total_kwh=total_kwh,
+        home_size=user_input["home_size_sqft"],
+        residents=user_input["residents"],
+    )
+    leaderboard_rank, leaderboard = simulate_leaderboard(eco_score)
+    badges = generate_badges(total_kwh, carbon_kg, recommendations)
 
     return {
         "predicted_bill_usd": predicted_bill,
+        "model_predicted_bill_usd": model_predicted_bill,
+        "utility": utility,
         "total_kwh": round(total_kwh, 2),
+        "hvac_kwh": round(hvac, 2),
         "peak_kwh": peak_kwh,
         "offpeak_kwh": offpeak_kwh,
+        "carbon_kg": carbon_kg,
         "carbon_kg_month": carbon_kg,
         "carbon_kg_year": round(carbon_kg * 12, 2),
         "carbon_equiv_car_miles": car_miles,
         "carbon_equiv_trees_needed": trees,
         "carbon_equiv_flights": flights,
         "eco_score": eco_score,
+        "eco_grade": eco_grade,
+        "similar_users_avg_kwh": similar_avg_kwh,
+        "similar_users_comparison": similar_users_comparison,
+        "leaderboard_rank": leaderboard_rank,
+        "leaderboard": leaderboard,
+        "badges": badges,
         "recommendations": recommendations,
     }

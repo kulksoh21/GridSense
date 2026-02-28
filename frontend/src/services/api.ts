@@ -6,6 +6,7 @@ export interface UserInput {
   home_size_sqft: number;
   residents: number;
   location: string;
+  utility: 'PG&E' | 'SCE' | 'SDG&E';
   ac_level: 'low' | 'medium' | 'high';
   climate: 'coastal' | 'inland' | 'desert' | 'mountain';
   time_usage_type: 'morning_peak' | 'evening_peak' | 'off_peak' | 'mixed';
@@ -20,18 +21,42 @@ export interface UserInput {
 
 export interface EnergyPrediction {
   predicted_bill_usd: number;
+  model_predicted_bill_usd?: number;
+  utility?: 'PG&E' | 'SCE' | 'SDG&E';
   total_kwh: number;
   hvac_kwh: number;
   peak_kwh: number;
   offpeak_kwh: number;
   carbon_kg: number;
-  monthly_energy_saving_recommendation: string;
+  carbon_kg_month?: number;
+  eco_score?: number;
+  eco_grade?: string;
+  similar_users_avg_kwh?: number;
+  similar_users_comparison?: string;
+  leaderboard_rank?: number;
+  leaderboard?: Array<{ rank: number; eco_score: number }>;
+  badges?: string[];
+  monthly_energy_saving_recommendation?: string;
 }
+
+const RATE_BY_UTILITY: Record<UserInput['utility'], { peak: number; offpeak: number }> = {
+  'PG&E': { peak: 0.35, offpeak: 0.15 },
+  SCE: { peak: 0.32, offpeak: 0.14 },
+  'SDG&E': { peak: 0.38, offpeak: 0.16 },
+};
 
 export const predictEnergyBill = async (userInput: UserInput): Promise<EnergyPrediction> => {
   try {
     const response = await axios.post(`${API_BASE_URL}/predict`, userInput);
-    return response.data;
+    const data = response.data;
+
+    return {
+      ...data,
+      hvac_kwh: data.hvac_kwh ?? 0,
+      carbon_kg: data.carbon_kg ?? data.carbon_kg_month ?? 0,
+      badges: data.badges ?? [],
+      leaderboard: data.leaderboard ?? [],
+    };
   } catch (error) {
     console.error('Error predicting energy bill:', error);
     throw error;
@@ -40,15 +65,17 @@ export const predictEnergyBill = async (userInput: UserInput): Promise<EnergyPre
 
 export const getRecommendations = (prediction: EnergyPrediction, userInput: UserInput): string[] => {
   const recommendations: string[] = [];
+  const rates = RATE_BY_UTILITY[userInput.utility] ?? RATE_BY_UTILITY['PG&E'];
+  const blendedRate = (rates.peak + rates.offpeak) / 2;
 
   // Recommendation 1: HVAC
   if (userInput.ac_level === 'high') {
-    const savingsFromHVAC = (prediction.hvac_kwh * 0.2 * 0.35).toFixed(2);
+    const savingsFromHVAC = (prediction.hvac_kwh * 0.2 * blendedRate).toFixed(2);
     recommendations.push(
       `Lower thermostat by 2°F to reduce HVAC usage by ~20% and save $${savingsFromHVAC}/month`
     );
   } else if (userInput.ac_level === 'medium') {
-    const savingsFromHVAC = (prediction.hvac_kwh * 0.15 * 0.35).toFixed(2);
+    const savingsFromHVAC = (prediction.hvac_kwh * 0.15 * blendedRate).toFixed(2);
     recommendations.push(
       `Adjust thermostat to save ~15% on HVAC and cut $${savingsFromHVAC}/month from your bill`
     );
@@ -56,7 +83,7 @@ export const getRecommendations = (prediction: EnergyPrediction, userInput: User
 
   // Recommendation 2: Peak usage
   if (userInput.time_usage_type !== 'off_peak') {
-    const savingsFromOffPeak = (prediction.peak_kwh * 0.2 * (0.35 - 0.15)).toFixed(2);
+    const savingsFromOffPeak = (prediction.peak_kwh * 0.2 * (rates.peak - rates.offpeak)).toFixed(2);
     recommendations.push(
       `Shift heavy appliance usage to off-peak hours (after 9 PM) and save $${savingsFromOffPeak}/month`
     );
@@ -68,7 +95,7 @@ export const getRecommendations = (prediction: EnergyPrediction, userInput: User
   ).length;
 
   if (applianceCount > 3) {
-    const savingsFromAppliances = ((prediction.total_kwh - prediction.hvac_kwh) * 0.15 * 0.35).toFixed(2);
+    const savingsFromAppliances = ((prediction.total_kwh - prediction.hvac_kwh) * 0.15 * blendedRate).toFixed(2);
     recommendations.push(
       `Unplug rarely-used appliances and use energy-efficient models, saving $${savingsFromAppliances}/month`
     );
@@ -82,7 +109,6 @@ export const getRecommendations = (prediction: EnergyPrediction, userInput: User
   if (userInput.monthly_spend_goal) {
     const difference = prediction.predicted_bill_usd - userInput.monthly_spend_goal;
     if (difference > 0) {
-      const goalsavings = difference.toFixed(2);
       recommendations[0] = `${recommendations[0]} to reach your $${userInput.monthly_spend_goal}/month goal`;
     }
   }

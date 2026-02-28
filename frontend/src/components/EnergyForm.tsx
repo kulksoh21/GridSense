@@ -12,6 +12,7 @@ export const EnergyForm = ({ onSubmit, loading }: EnergyFormProps) => {
     home_size_sqft: 2000,
     residents: 2,
     location: 'coastal',
+    utility: 'PG&E',
     ac_level: 'medium',
     climate: 'coastal',
     time_usage_type: 'mixed',
@@ -27,7 +28,9 @@ export const EnergyForm = ({ onSubmit, loading }: EnergyFormProps) => {
   const [zipCode, setZipCode] = useState('');
   const [climateLoading, setClimateLoading] = useState(false);
   const [climateError, setClimateError] = useState<string | null>(null);
-  const [acHours, setAcHours] = useState(12);
+  const [, setAcHours] = useState(12);
+  const [homeSizeInput, setHomeSizeInput] = useState('2000');
+  const [acHoursInput, setAcHoursInput] = useState('12');
 
   const handleInputChange = (field: keyof UserInput, value: any) => {
     setFormData((prev) => ({
@@ -94,8 +97,26 @@ export const EnergyForm = ({ onSubmit, loading }: EnergyFormProps) => {
           </label>
           <input
             type="number"
-            value={formData.home_size_sqft}
-            onChange={(e) => handleInputChange('home_size_sqft', parseInt(e.target.value) || 0)}
+            value={homeSizeInput}
+            onChange={(e) => {
+              const rawValue = e.target.value;
+              setHomeSizeInput(rawValue);
+
+              if (rawValue === '') {
+                return;
+              }
+
+              const parsed = parseInt(rawValue, 10);
+              if (!Number.isNaN(parsed)) {
+                handleInputChange('home_size_sqft', parsed);
+              }
+            }}
+            onBlur={() => {
+              if (homeSizeInput.trim() === '') {
+                setHomeSizeInput('0');
+                handleInputChange('home_size_sqft', 0);
+              }
+            }}
             step="1"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-energy-blue focus:border-transparent"
           />
@@ -116,6 +137,22 @@ export const EnergyForm = ({ onSubmit, loading }: EnergyFormProps) => {
                 {n}
               </option>
             ))}
+          </select>
+        </div>
+
+        {/* Utility Provider */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Utility Provider
+          </label>
+          <select
+            value={formData.utility}
+            onChange={(e) => handleInputChange('utility', e.target.value as UserInput['utility'])}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-energy-blue focus:border-transparent"
+          >
+            <option value="PG&E">PG&E</option>
+            <option value="SCE">SCE</option>
+            <option value="SDG&E">SDG&E</option>
           </select>
         </div>
 
@@ -141,12 +178,31 @@ export const EnergyForm = ({ onSubmit, loading }: EnergyFormProps) => {
             type="number"
             min="0"
             max="24"
-            value={acHours}
+            value={acHoursInput}
             onChange={(e) => {
-              const hours = Math.max(0, Math.min(24, parseInt(e.target.value) || 0));
+              const rawValue = e.target.value;
+              setAcHoursInput(rawValue);
+
+              if (rawValue === '') {
+                return;
+              }
+
+              const parsed = parseInt(rawValue, 10);
+              if (Number.isNaN(parsed)) {
+                return;
+              }
+
+              const hours = Math.max(0, Math.min(24, parsed));
               setAcHours(hours);
               const level = hours <= 8 ? 'low' : hours <= 14 ? 'medium' : 'high';
               handleInputChange('ac_level', level);
+            }}
+            onBlur={() => {
+              if (acHoursInput.trim() === '') {
+                setAcHoursInput('0');
+                setAcHours(0);
+                handleInputChange('ac_level', 'low');
+              }
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />

@@ -1,11 +1,17 @@
-# GridSense – Home Energy Usage Optimizer
+# GridSense
 
 **Hackathon:** Hack for Humanity 2026  
 **Authors:** Khushi Gandhi  and Soham Kulkarni
 
----
+## Tech Stack
+- Frontend: React + TypeScript + Vite + Tailwind
+- Backend: Flask + pandas + scikit-learn + joblib
 
-## Project Overview
+## Project Structure
+- `frontend/` - React app
+- `src/` - backend prediction engine and data simulation scripts
+- `server.py` - Flask API server
+- `best_energy_model.pkl` - trained model artifact
 
 **GridSense** is an intelligent energy optimization platform designed to help California households reduce electricity costs while minimizing their carbon footprint. By combining realistic household energy data, machine learning-powered bill predictions, and gamified insights, GridSense empowers users to make informed decisions about energy usage, cost-saving strategies, and sustainable living practices.
 
@@ -72,4 +78,79 @@ Built for Hack for Humanity 2026, GridSense demonstrates how machine learning an
 
 ---
 ## Installation & Usage
+
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- npm
+
+### 1. Clone and enter the project
+
+```bash
+git clone https://github.com/kulksoh21/GridSense.git
+cd GridSense
+```
+
+### 2. Run setup script (recommended)
+
+Windows (PowerShell):
+
+```powershell
+.\setup.ps1
+```
+
+macOS/Linux:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+These scripts create `venv`, install Python dependencies, and install frontend dependencies.
+
+### 3. Run backend server
+
+```bash
+python server.py
+```
+
+Backend should be available at:
+
+`http://localhost:5000`
+
+### 4. Run frontend
+
+In a new terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Frontend should be available at:
+
+`http://localhost:5173`
+
+### 5. Verify app is working
+
+1. Open `http://localhost:5173`.
+2. Fill out the form and click **Get My Energy Analysis**.
+3. Confirm prediction cards, recommendations, eco score, and similar-home panels appear.
+
+### Manual install (if you skip scripts)
+
+```bash
+pip install -r requirements.txt
+cd frontend
+npm install
+```
+
+### Build for production
+
+```bash
+cd frontend
+npm run build
+npm run preview
+```
 

@@ -3,12 +3,6 @@
  * Uses Nominatim for geocoding and Open-Meteo for weather data
  */
 
-interface WeatherData {
-  temperature: number;
-  precipitation: number;
-  elevation: number;
-}
-
 // Fallback ZIP code to climate mapping for CA
 const zipToclimateDefault: Record<string, 'coastal' | 'inland' | 'desert' | 'mountain'> = {
   '90': 'coastal', '91': 'desert', '92': 'coastal', '93': 'desert',

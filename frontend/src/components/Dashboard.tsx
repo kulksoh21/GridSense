@@ -1,5 +1,5 @@
 import { EnergyPrediction, UserInput } from '../services/api';
-import { FiTrendingDown, FiTarget, FiLeaf } from 'react-icons/fi';
+import { FiTarget, FiTrendingDown } from 'react-icons/fi';
 
 interface DashboardProps {
   prediction: EnergyPrediction | null;
@@ -13,6 +13,19 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
     return null;
   }
 
+  const totalKwh = prediction.total_kwh ?? 0;
+  const hvacKwh = prediction.hvac_kwh ?? 0;
+  const carbonKg = prediction.carbon_kg ?? 0;
+  const hvacPct = totalKwh > 0 ? (hvacKwh / totalKwh) * 100 : 0;
+  const peakPct = totalKwh > 0 ? (prediction.peak_kwh / totalKwh) * 100 : 0;
+  const offpeakPct = totalKwh > 0 ? (prediction.offpeak_kwh / totalKwh) * 100 : 0;
+  const ecoScore = prediction.eco_score ?? 0;
+  const ecoGrade = prediction.eco_grade ?? 'N/A';
+  const similarAvgKwh = prediction.similar_users_avg_kwh ?? 0;
+  const similarComparison = prediction.similar_users_comparison ?? 'No comparison available yet.';
+  const badges = prediction.badges ?? [];
+  const leaderboard = prediction.leaderboard ?? [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -21,6 +34,9 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
         <p className="text-blue-100">
           {userInput.home_size_sqft} sqft home with {userInput.residents} resident
           {userInput.residents > 1 ? 's' : ''}
+        </p>
+        <p className="text-blue-100 text-sm mt-1">
+          Utility provider: {prediction.utility ?? userInput.utility}
         </p>
       </div>
 
@@ -45,7 +61,7 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
             <div>
               <p className="text-gray-600 text-sm font-medium">Monthly kWh</p>
               <p className="text-3xl font-bold text-energy-orange mt-2">
-                {prediction.total_kwh.toFixed(0)}
+                {totalKwh.toFixed(0)}
               </p>
             </div>
             <div className="text-4xl text-energy-orange opacity-20">⚡</div>
@@ -58,7 +74,7 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
             <div>
               <p className="text-gray-600 text-sm font-medium">Carbon Footprint</p>
               <p className="text-3xl font-bold text-energy-green mt-2">
-                {prediction.carbon_kg.toFixed(0)} kg
+                {carbonKg.toFixed(0)} kg
               </p>
             </div>
             <div className="text-4xl text-energy-green opacity-20">🌱</div>
@@ -121,7 +137,7 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex items-center mb-6">
           <FiTrendingDown className="text-energy-green mr-2 text-lg" />
-          <h3 className="text-lg font-semibold text-gray-900">Top 3 Actions to Reduce Usage</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Top Actions to Reduce Usage</h3>
         </div>
         <div className="space-y-4">
           {recommendations.map((rec, idx) => (
@@ -138,6 +154,54 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
         </div>
       </div>
 
+      {/* Eco Panel */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center mb-4">
+          <span className="text-energy-green mr-2 text-lg" aria-hidden="true">Eco</span>
+          <h4 className="font-semibold text-gray-900">Eco Score</h4>
+        </div>
+        <p className="text-3xl font-bold text-energy-green">{ecoScore}</p>
+        <p className="text-sm text-gray-600 mt-1">Grade: {ecoGrade}</p>
+        {prediction.leaderboard_rank && (
+          <p className="text-sm text-gray-600 mt-1">Leaderboard rank: #{prediction.leaderboard_rank}</p>
+        )}
+        {badges.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {badges.map((badge) => (
+              <span key={badge} className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                {badge}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Similar Homes + Leaderboard Panels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h4 className="font-semibold text-gray-900 mb-2">Compared to Similar Homes</h4>
+          <p className="text-sm text-gray-700">{similarComparison}</p>
+          <p className="text-xs text-gray-500 mt-2">
+            Similar-home average usage: {similarAvgKwh.toFixed(0)} kWh/month
+          </p>
+        </div>
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h4 className="font-semibold text-gray-900 mb-2">Top Eco Scores</h4>
+          {leaderboard.length > 0 ? (
+            <div className="space-y-1">
+              {leaderboard.slice(0, 3).map((entry) => (
+                <div key={`${entry.rank}-${entry.eco_score}`} className="flex justify-between text-sm text-gray-700">
+                  <span>#{entry.rank}</span>
+                  <span>{entry.eco_score}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No leaderboard data yet.</p>
+          )}
+        </div>
+      </div>
+
       {/* Breakdown Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* HVAC Usage */}
@@ -148,20 +212,20 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600">HVAC</span>
                 <span className="text-sm font-semibold text-gray-900">
-                  {prediction.hvac_kwh.toFixed(0)} kWh
+                  {hvacKwh.toFixed(0)} kWh
                 </span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-energy-orange h-2 rounded-full"
                   style={{
-                    width: `${(prediction.hvac_kwh / prediction.total_kwh) * 100}%`,
+                    width: `${hvacPct}%`,
                   }}
                 ></div>
               </div>
             </div>
             <p className="text-xs text-gray-500">
-              {((prediction.hvac_kwh / prediction.total_kwh) * 100).toFixed(1)}% of total usage
+              {hvacPct.toFixed(1)}% of total usage
             </p>
           </div>
         </div>
@@ -181,7 +245,7 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
                 <div
                   className="bg-energy-blue h-2 rounded-full"
                   style={{
-                    width: `${(prediction.peak_kwh / prediction.total_kwh) * 100}%`,
+                    width: `${peakPct}%`,
                   }}
                 ></div>
               </div>
@@ -197,7 +261,7 @@ export const Dashboard = ({ prediction, userInput, recommendations, goalProgress
                 <div
                   className="bg-energy-green h-2 rounded-full"
                   style={{
-                    width: `${(prediction.offpeak_kwh / prediction.total_kwh) * 100}%`,
+                    width: `${offpeakPct}%`,
                   }}
                 ></div>
               </div>
