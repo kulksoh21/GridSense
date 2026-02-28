@@ -1,7 +1,7 @@
 # GridSense – Home Energy Usage Optimizer
 
 **Hackathon:** Hack for Humanity 2026  
-**Author:** Khushi Gandhi  and Soham Kulkarni
+**Authors:** Khushi Gandhi  and Soham Kulkarni
 
 ---
 
